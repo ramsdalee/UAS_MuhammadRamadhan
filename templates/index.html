@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload & Crop Image</title>
+    <style>
+        #preview-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 300px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            overflow: hidden;
+        }
+
+        #preview-image {
+            max-width: 100%;
+            max-height: 100%;
+        }
+        
+        #output-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 300px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            overflow: hidden;
+        }
+
+        #output-image {
+            max-width: 100%;
+            max-height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <h2>Select an image to upload and display</h2>
+    <form method="post" action="/" enctype="multipart/form-data">
+        <input type="file" id="upload-input" accept="image/*">
+        <div id="preview-container">
+            <img id="preview-image" src="#" alt="Preview">
+        </div>
+
+        <div>
+            <label for="width-input">Lebar Gambar (piksel):</label>
+            <input type="number" id="width-input" placeholder="Lebar">
+        </div>
+        <div>
+            <label for="height-input">Tinggi Gambar (piksel):</label>
+            <input type="number" id="height-input" placeholder="Tinggi">
+        </div>
+        <div>
+            <label for="position-input">Posisi Pemotongan:</label>
+            <select id="position-input">
+                <option value="top-left">Top Kiri</option>
+                <option value="top-center">Top Tengah</option>
+                <option value="top-right">Top Kanan</option>
+                <option value="center-left">Tengah Kiri</option>
+                <option value="center">Tengah</option>
+                <option value="center-right">Tengah Kanan</option>
+                <option value="bottom-left">Bawah Kiri</option>
+                <option value="bottom-center">Bawah Tengah</option>
+                <option value="bottom-right">Bawah Kanan</option>
+            </select>
+        </div>
+
+        <button type="button" id="crop-button">Crop Image</button>
+
+        <div id="output-container">
+            <img id="output-image" src="#" alt="Cropped Image">
+        </div>
+    </form>
+
+    <script>
+        var uploadInput = document.getElementById('upload-input');
+        var previewImage = document.getElementById('preview-image');
+        var cropButton = document.getElementById('crop-button');
+        var outputContainer = document.getElementById('output-container');
+        var outputImage = document.getElementById('output-image');
+        var widthInput = document.getElementById('width-input');
+        var heightInput = document.getElementById('height-input');
+        var positionInput = document.getElementById('position-input');
+
+        uploadInput.addEventListener('change', function(e) {
+            var file = e.target.files[0];
+            var reader = new FileReader();
+
+            reader.onload = function(e) {
+                previewImage.src = e.target.result;
+            }
+
+            reader.readAsDataURL(file);
+        });
+
+        cropButton.addEventListener('click', function() {
+            // Lakukan pemotongan gambar di sini
+
+            var targetWidth = parseInt(widthInput.value);
+            var targetHeight = parseInt(heightInput.value);
+            var position = positionInput.value;
+
+            var canvas = document.createElement('canvas');
+            var context = canvas.getContext('2d');
+            canvas.width = targetWidth;
+            canvas.height = targetHeight;
+
+            var image = new Image();
+            image.onload = function() {
+                var sourceX, sourceY;
+
+                if (position === 'top-left') {
+                    sourceX = 0;
+                    sourceY = 0;
+                } else if (position === 'top-center') {
+                    sourceX = (image.width - targetWidth) / 2;
+                    sourceY = 0;
+                } else if (position === 'top-right') {
+                    sourceX = image.width - targetWidth;
+                    sourceY = 0;
+                } else if (position === 'center-left') {
+                    sourceX = 0;
+                    sourceY = (image.height - targetHeight) / 2;
+                } else if (position === 'center') {
+                    sourceX = (image.width - targetWidth) / 2;
+                    sourceY = (image.height - targetHeight) / 2;
+                } else if (position === 'center-right') {
+                    sourceX = image.width - targetWidth;
+                    sourceY = (image.height - targetHeight) / 2;
+                } else if (position === 'bottom-left') {
+                    sourceX = 0;
+                    sourceY = image.height - targetHeight;
+                } else if (position === 'bottom-center') {
+                    sourceX = (image.width - targetWidth) / 2;
+                    sourceY = image.height - targetHeight;
+                } else if (position === 'bottom-right') {
+                    sourceX = image.width - targetWidth;
+                    sourceY = image.height - targetHeight;
+                }
+
+                // Gambar gambar yang dipotong ke dalam elemen <canvas>
+                context.drawImage(
+                    image,
+                    sourceX,
+                    sourceY,
+                    targetWidth,
+                    targetHeight,
+                    0,
+                    0,
+                    targetWidth,
+                    targetHeight
+                );
+
+                // Dapatkan data gambar hasil pemotongan
+                var croppedImage = new Image();
+                croppedImage.src = canvas.toDataURL('image/png');
+
+                // Tampilkan gambar hasil pemotongan
+                outputImage.src = croppedImage.src;
+                outputContainer.style.display = 'block';
+            };
+
+            image.src = previewImage.src;
+        });
+    </script>
+</body>
+</html>
